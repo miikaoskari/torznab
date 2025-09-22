@@ -12,7 +12,7 @@ authors = [
 ]
 license = {file = "LICENSE"}
 keywords = ["torznab", "torrent"]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 
 dependencies = [
   "requests"
