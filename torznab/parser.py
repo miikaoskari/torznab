@@ -13,13 +13,11 @@ def parse_torznab(xml_string: str) -> list[TorrentItem]:
         categories = [int(cat.text) for cat in item.findall("category") if cat.text and cat.text.isdigit()]
 
         tags = []
-        for attr in item.findall("torznab:attr", ns):
-            if attr.get("name") == "tag" and (val := attr.get("value")):
-                tags.append(val)
-
         torznab_attrs = {}
         for attr in item.findall("torznab:attr", ns):
             torznab_attrs[attr.get("name")] = attr.get("value")
+            if attr.get("name") == "tag" and (val := attr.get("value")):
+                tags.append(val)
 
         torrent = TorrentItem(
             title=item.findtext("title"),
