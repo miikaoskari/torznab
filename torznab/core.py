@@ -15,13 +15,14 @@ class Torznab:
         resp.raise_for_status()
         return resp.text
 
-    def search_torrent(self, query: str, url: str) -> list[TorrentItem]:
+    def search_torrent(self, query: str, url: str, api_key: str | None) -> list[TorrentItem]:
         try:
             is_url(url)
+            key = api_key if api_key is not None else self.api_key
             full_query = {
                 "t":"search",
                 "q":query,
-                **({"apikey": self.api_key} if self.api_key else {})
+                **({"apikey": key} if key else {})
             }
             return parse_torznab(self._search(url, full_query))
         except Exception as e:
