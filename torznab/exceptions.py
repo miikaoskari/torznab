@@ -1,0 +1,2 @@
+class TorznabException(Exception):
+    pass
