@@ -1,12 +1,13 @@
 import requests
 
-from .validators import is_url
+from .exceptions import TorznabException
 from .parser import parse_torznab
 from .types import TorrentItem
-from .exceptions import TorznabException
+from .validators import is_url
+
 
 class Torznab:
-    def __init__(self, api_key: str) -> None:
+    def __init__(self, api_key: str | None = None) -> None:
         self.api_key = api_key
         self.session = requests.Session()
 
@@ -15,14 +16,19 @@ class Torznab:
         resp.raise_for_status()
         return resp.text
 
-    def search_torrent(self, query: str, url: str, api_key: str | None) -> list[TorrentItem]:
+    def search_torrent(
+        self,
+        query: str,
+        url: str,
+        api_key: str | None = None,
+    ) -> list[TorrentItem]:
         try:
             is_url(url)
             key = api_key if api_key is not None else self.api_key
             full_query = {
-                "t":"search",
-                "q":query,
-                **({"apikey": key} if key else {})
+                "t": "search",
+                "q": query,
+                **({"apikey": key} if key else {}),
             }
             return parse_torznab(self._search(url, full_query))
         except Exception as e:
