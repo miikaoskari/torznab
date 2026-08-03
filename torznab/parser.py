@@ -128,7 +128,7 @@ def _parse_music_info(attrs: dict[str, str]) -> MusicInfo | None:
     publisher = attrs.get("publisher")
     tracks = attrs.get("tracks")
 
-    if any(x is not None for x in (artist, album, publisher, tracks)):
+    if any(field is not None for field in (artist, album, publisher, tracks)):
         return MusicInfo(
             artist=artist,
             album=album,
