@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 
-@dataclass
+
+@dataclass(slots=True)
 class TorrentItem:
     title: str | None = None
     desc: str | None = None
