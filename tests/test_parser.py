@@ -180,10 +180,7 @@ def test_parse_movie_sample(movie_sample_xml):
     assert item.movie_info.imdb_score == "8.8"
     assert item.movie_info.imdb_title == "Inception"
     assert item.movie_info.imdb_tagline == "Your mind is the scene of the crime."
-    assert (
-        item.movie_info.imdb_plot
-        == "A thief who steals corporate secrets."
-    )
+    assert item.movie_info.imdb_plot == "A thief who steals corporate secrets."
     assert item.movie_info.imdb_year == 2010
     assert item.movie_info.imdb_director == "Christopher Nolan"
     assert item.movie_info.imdb_actors == "Leonardo DiCaprio, Joseph Gordon-Levitt"

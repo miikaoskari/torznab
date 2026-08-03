@@ -7,7 +7,7 @@ resolution-markers = [
 ]
 
 [options]
-exclude-newer = "2026-07-27T16:24:34.584467896Z"
+exclude-newer = "2026-07-27T20:36:44.150405827Z"
 exclude-newer-span = "P7D"
 
 [[package]]
@@ -609,7 +609,7 @@ wheels = [
 
 [[package]]
 name = "torznab"
-version = "0.0.2"
+version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "requests" },
