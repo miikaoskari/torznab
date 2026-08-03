@@ -1,16 +1,20 @@
 import xml.etree.ElementTree as ET
+
 from .types import TorrentItem
 
-ns = {
-    "torznab": "http://torznab.com/schemas/2015/feed"
-}
+ns = {"torznab": "http://torznab.com/schemas/2015/feed"}
+
 
 def parse_torznab(xml_string: str) -> list[TorrentItem]:
     root = ET.fromstring(xml_string)
     items = []
     for item in root.findall(".//item"):
         # these attributes may occur multiple times
-        categories = [int(cat.text) for cat in item.findall("category") if cat.text and cat.text.isdigit()]
+        categories = [
+            int(cat.text)
+            for cat in item.findall("category")
+            if cat.text and cat.text.isdigit()
+        ]
 
         tags = []
         torznab_attrs = {}
@@ -38,7 +42,7 @@ def parse_torznab(xml_string: str) -> list[TorrentItem]:
             infohash=torznab_attrs.get("infohash"),
             dl_volume_factor=float(torznab_attrs.get("downloadvolumefactor", 0)),
             ul_volume_factor=float(torznab_attrs.get("uploadvolumefactor", 0)),
-            min_ratio=float(torznab_attrs.get("minimumratio", 0))
+            min_ratio=float(torznab_attrs.get("minimumratio", 0)),
         )
         items.append(torrent)
     return items

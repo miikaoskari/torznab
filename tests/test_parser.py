@@ -47,6 +47,7 @@ def test_parse_torznab_single_item_with_attrs():
     assert item.dl_volume_factor == 0
     assert item.ul_volume_factor == 1
 
+
 def test_parse_torznab_empty_xml():
     xml = "<rss></rss>"
     result = parse_torznab(xml)
