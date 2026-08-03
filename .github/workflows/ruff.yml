@@ -18,7 +18,7 @@ jobs:
       - name: Run Ruff Linter
         uses: astral-sh/ruff-action@v4.1.0
         with:
-          args: "check --fix"
+          args: "check --diff"
 
       - name: Run Ruff Formatter
         uses: astral-sh/ruff-action@v4.1.0
