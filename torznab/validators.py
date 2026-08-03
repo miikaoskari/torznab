@@ -1,9 +1,12 @@
 from urllib.parse import urlparse
 
+
 class ValidationError(Exception):
     pass
 
-def is_url(url):
+
+def is_url(url: str) -> bool:
     result = urlparse(url)
     if not all([result.scheme, result.netloc]):
-        raise ValidationError("Invalid URL")
+        raise ValidationError(f"Invalid URL: '{url}'")
+    return True
