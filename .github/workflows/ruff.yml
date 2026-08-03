@@ -1,0 +1,26 @@
+name: Ruff
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  ruff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Ruff Linter
+        uses: astral-sh/ruff-action@v4.1.0
+        with:
+          args: "check ."
+
+      - name: Run Ruff Formatter
+        uses: astral-sh/ruff-action@v4.1.0
+        with:
+          args: "format --check ."
