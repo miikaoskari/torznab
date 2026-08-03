@@ -24,3 +24,6 @@ class TorrentItem:
     dl_volume_factor: float | None = 0
     ul_volume_factor: float | None = 0
     tags: list[str] = field(default_factory=list)
+
+    def is_freeleech(self) -> bool:
+        return self.dl_volume_factor == 0
