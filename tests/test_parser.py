@@ -1,5 +1,6 @@
 from torznab.parser import parse_torznab
 
+
 def test_parse_torznab_single_item_with_attrs():
     xml = """
     <rss xmlns:torznab="http://torznab.com/schemas/2015/feed">
