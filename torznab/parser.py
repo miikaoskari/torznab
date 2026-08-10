@@ -3,9 +3,19 @@ import xml.etree.ElementTree as ET
 from .types import (
     AudioInfo,
     BookInfo,
+    Capabilities,
+    Category,
+    Genre,
+    Limits,
     MediaInfo,
     MovieInfo,
     MusicInfo,
+    Registration,
+    Searching,
+    SearchMode,
+    Server,
+    SubCategory,
+    Tag,
     TorrentItem,
     TVInfo,
 )
@@ -29,6 +39,12 @@ def _parse_float(val: str | None, default: float | None = None) -> float | None:
         return float(val)
     except ValueError:
         return default
+
+
+def _parse_bool(val: str | None) -> bool | None:
+    if val is None:
+        return None
+    return val.strip().lower() == "yes"
 
 
 def _parse_media_info(attrs: dict[str, str]) -> MediaInfo | None:
@@ -220,3 +236,88 @@ def parse_torznab(xml_string: str) -> list[TorrentItem]:
         )
         items.append(torrent)
     return items
+
+
+def _parse_search_mode(elem: ET.Element | None) -> SearchMode | None:
+    if elem is None:
+        return None
+    params = elem.get("supportedParams")
+    return SearchMode(
+        available=_parse_bool(elem.get("available")),
+        supported_params=params.split(",") if params else [],
+    )
+
+
+def parse_capabilities(xml_string: str) -> Capabilities:
+    root = ET.fromstring(xml_string)
+
+    server = None
+    if (elem := root.find("server")) is not None:
+        server = Server(
+            version=elem.get("version"),
+            title=elem.get("title"),
+            strapline=elem.get("strapline"),
+            email=elem.get("email"),
+            url=elem.get("url"),
+            image=elem.get("image"),
+        )
+
+    limits = None
+    if (elem := root.find("limits")) is not None:
+        limits = Limits(
+            max=_parse_int(elem.get("max")),
+            default=_parse_int(elem.get("default")),
+        )
+
+    registration = None
+    if (elem := root.find("registration")) is not None:
+        registration = Registration(
+            available=_parse_bool(elem.get("available")),
+            open=_parse_bool(elem.get("open")),
+        )
+
+    searching = None
+    if (searching_elem := root.find("searching")) is not None:
+        searching = Searching(
+            search=_parse_search_mode(searching_elem.find("search")),
+            tv_search=_parse_search_mode(searching_elem.find("tv-search")),
+            movie_search=_parse_search_mode(searching_elem.find("movie-search")),
+            audio_search=_parse_search_mode(searching_elem.find("audio-search")),
+            book_search=_parse_search_mode(searching_elem.find("book-search")),
+        )
+
+    categories = []
+    for cat in root.findall("categories/category"):
+        subcats = [
+            SubCategory(id=_parse_int(subcat.get("id")), name=subcat.get("name"))
+            for subcat in cat.findall("subcat")
+        ]
+        categories.append(
+            Category(
+                id=_parse_int(cat.get("id")), name=cat.get("name"), subcats=subcats
+            )
+        )
+
+    genres = [
+        Genre(
+            id=_parse_int(genre.get("id")),
+            category_id=_parse_int(genre.get("categoryid")),
+            name=genre.get("name"),
+        )
+        for genre in root.findall("genres/genre")
+    ]
+
+    tags = [
+        Tag(name=tag.get("name"), description=tag.get("description"))
+        for tag in root.findall("tags/tag")
+    ]
+
+    return Capabilities(
+        server=server,
+        limits=limits,
+        registration=registration,
+        searching=searching,
+        categories=categories,
+        genres=genres,
+        tags=tags,
+    )

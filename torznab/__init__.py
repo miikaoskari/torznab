@@ -1,12 +1,22 @@
 from .core import Torznab
 from .exceptions import TorznabException
-from .parser import parse_torznab
+from .parser import parse_capabilities, parse_torznab
 from .types import (
     AudioInfo,
     BookInfo,
+    Capabilities,
+    Category,
+    Genre,
+    Limits,
     MediaInfo,
     MovieInfo,
     MusicInfo,
+    Registration,
+    Searching,
+    SearchMode,
+    Server,
+    SubCategory,
+    Tag,
     TorrentItem,
     TVInfo,
 )
@@ -15,6 +25,7 @@ __all__ = [
     "Torznab",
     "TorznabException",
     "parse_torznab",
+    "parse_capabilities",
     "TorrentItem",
     "MediaInfo",
     "MovieInfo",
@@ -22,4 +33,14 @@ __all__ = [
     "MusicInfo",
     "BookInfo",
     "AudioInfo",
+    "Capabilities",
+    "Server",
+    "Limits",
+    "Registration",
+    "SearchMode",
+    "Searching",
+    "SubCategory",
+    "Category",
+    "Genre",
+    "Tag",
 ]

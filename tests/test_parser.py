@@ -1,143 +1,4 @@
-import pytest
-
-from torznab.parser import parse_torznab
-
-
-@pytest.fixture
-def make_xml():
-    """Helper fixture to wrap item XML snippets into a standard Torznab RSS envelope."""
-
-    def _make(items_body: str) -> str:
-        return f"""
-        <rss xmlns:torznab="http://torznab.com/schemas/2015/feed">
-          <channel>
-            {items_body}
-          </channel>
-        </rss>
-        """
-
-    return _make
-
-
-@pytest.fixture
-def tv_sample_xml(make_xml):
-    """Fixture providing a sample TV show Torznab item XML."""
-    items = """
-    <item>
-      <title>Breaking Bad S05E14 1080p HDTV</title>
-      <guid>tv-item-123</guid>
-      <torznab:attr name="season" value="5" />
-      <torznab:attr name="episode" value="14" />
-      <torznab:attr name="rageid" value="18164" />
-      <torznab:attr name="tvtitle" value="Breaking Bad" />
-      <torznab:attr name="tvairdate" value="Sun, 15 Sep 2013 00:00:00 +0000" />
-      <torznab:attr name="tvdbid" value="81189" />
-      <torznab:attr name="tvmazeid" value="169" />
-      <torznab:attr name="resolution" value="1080p" />
-      <torznab:attr name="video" value="x264" />
-    </item>
-    """
-    return make_xml(items)
-
-
-@pytest.fixture
-def movie_sample_xml(make_xml):
-    """Fixture providing a sample Movie Torznab item XML."""
-    items = """
-    <item>
-      <title>Inception 2010 1080p Bluray</title>
-      <guid>movie-item-456</guid>
-      <torznab:attr name="imdb" value="1375666" />
-      <torznab:attr name="imdbscore" value="8.8" />
-      <torznab:attr name="imdbtitle" value="Inception" />
-      <torznab:attr name="imdbtagline" value="Your mind is the scene of the crime." />
-      <torznab:attr name="imdbplot" value="A thief who steals corporate secrets." />
-      <torznab:attr name="imdbyear" value="2010" />
-      <torznab:attr name="imdbdirector" value="Christopher Nolan" />
-      <torznab:attr name="imdbactors" value="Leonardo DiCaprio, Joseph Gordon-Levitt" />
-      <torznab:attr name="genre" value="Action, Sci-Fi" />
-      <torznab:attr name="resolution" value="1080p" />
-      <torznab:attr name="video" value="x264" />
-      <torznab:attr name="audio" value="DTS" />
-      <torznab:attr name="language" value="English" />
-    </item>
-    """
-    return make_xml(items)
-
-
-@pytest.fixture
-def music_sample_xml(make_xml):
-    """Fixture providing a sample Music Torznab item XML."""
-    items = """
-    <item>
-      <title>Daft Punk - Random Access Memories (2013) FLAC</title>
-      <guid>music-item-789</guid>
-      <torznab:attr name="artist" value="Daft Punk" />
-      <torznab:attr name="album" value="Random Access Memories" />
-      <torznab:attr name="publisher" value="Columbia" />
-      <torznab:attr name="tracks" value="Give Life Back to Music|Get Lucky" />
-      <torznab:attr name="audio" value="FLAC" />
-      <torznab:attr name="language" value="English" />
-    </item>
-    """
-    return make_xml(items)
-
-
-@pytest.fixture
-def book_sample_xml(make_xml):
-    """Fixture providing a sample Book Torznab item XML."""
-    items = """
-    <item>
-      <title>The Hobbit by J.R.R. Tolkien EPUB</title>
-      <guid>book-item-101</guid>
-      <torznab:attr name="booktitle" value="The Hobbit" />
-      <torznab:attr name="publishdate" value="1937-09-21" />
-      <torznab:attr name="author" value="J.R.R. Tolkien" />
-      <torznab:attr name="pages" value="310" />
-    </item>
-    """
-    return make_xml(items)
-
-
-@pytest.fixture
-def general_torrent_sample_xml(make_xml):
-    """Fixture providing a sample Torznab item with general attributes."""
-    items = """
-    <item>
-      <title>Ubuntu 24.04 LTS Desktop ISO</title>
-      <guid>ubuntu-2404</guid>
-      <link>http://example.com/ubuntu.torrent</link>
-      <size>4000000000</size>
-      <comments>15</comments>
-      <pubDate>Mon, 22 Apr 2024 10:00:00 +0000</pubDate>
-      <category>5000</category>
-      <category>5070</category>
-      <torznab:attr name="seeders" value="120" />
-      <torznab:attr name="leechers" value="10" />
-      <torznab:attr name="peers" value="130" />
-      <torznab:attr name="grabs" value="450" />
-      <torznab:attr name="infohash" value="a1b2c3d4e5f678901234567890abcdef12345678" />
-      <torznab:attr name="magneturl" value="magnet:?xt=urn:btih:a1b2c3d4e5" />
-      <torznab:attr name="seedtype" value="ratio" />
-      <torznab:attr name="downloadvolumefactor" value="0.0" />
-      <torznab:attr name="uploadvolumefactor" value="1.0" />
-      <torznab:attr name="minimumratio" value="1.5" />
-      <torznab:attr name="minimumseedtime" value="86400" />
-      <torznab:attr name="poster" value="http://example.com/poster.jpg" />
-      <torznab:attr name="group" value="LinuxReleases" />
-      <torznab:attr name="team" value="Canonical" />
-      <torznab:attr name="tag" value="freeleech" />
-      <torznab:attr name="tag" value="iso" />
-      <torznab:attr name="files" value="1" />
-      <torznab:attr name="password" value="0" />
-      <torznab:attr name="nfo" value="1" />
-      <torznab:attr name="info" value="http://example.com/ubuntu.nfo" />
-      <torznab:attr name="year" value="2024" />
-      <torznab:attr name="coverurl" value="http://example.com/cover.jpg" />
-      <torznab:attr name="backdropurl" value="http://example.com/backdrop.jpg" />
-    </item>
-    """
-    return make_xml(items)
+from torznab.parser import parse_capabilities, parse_torznab
 
 
 def test_parse_tv_sample(tv_sample_xml):
@@ -298,3 +159,151 @@ def test_parse_torznab_invalid_numeric_values(make_xml):
     assert len(result) == 1
     assert result[0].comments is None
     assert result[0].dl_volume_factor == 1.0
+
+
+def test_parse_capabilities_server(full_caps_xml):
+    caps = parse_capabilities(full_caps_xml)
+
+    assert caps.server is not None
+    assert caps.server.version == "1.1"
+    assert caps.server.title == "Example Indexer"
+    assert caps.server.strapline == "A fine indexer"
+    assert caps.server.email == "admin@indexer.local"
+    assert caps.server.url == "http://indexer.local/"
+    assert caps.server.image == "http://indexer.local/content/banner.jpg"
+
+
+def test_parse_capabilities_limits(full_caps_xml):
+    caps = parse_capabilities(full_caps_xml)
+
+    assert caps.limits is not None
+    assert caps.limits.max == 100
+    assert caps.limits.default == 50
+
+
+def test_parse_capabilities_registration(full_caps_xml):
+    caps = parse_capabilities(full_caps_xml)
+
+    assert caps.registration is not None
+    assert caps.registration.available is True
+    assert caps.registration.open is False
+
+
+def test_parse_capabilities_searching(full_caps_xml):
+    caps = parse_capabilities(full_caps_xml)
+
+    assert caps.searching is not None
+
+    assert caps.searching.search is not None
+    assert caps.searching.search.available is True
+    assert caps.searching.search.supported_params == ["q"]
+
+    assert caps.searching.tv_search is not None
+    assert caps.searching.tv_search.available is True
+    assert caps.searching.tv_search.supported_params == [
+        "q",
+        "rid",
+        "tvdbid",
+        "season",
+        "ep",
+    ]
+
+    assert caps.searching.movie_search is not None
+    assert caps.searching.movie_search.available is False
+    assert caps.searching.movie_search.supported_params == ["q", "imdbid", "genre"]
+
+    assert caps.searching.audio_search is not None
+    assert caps.searching.audio_search.available is False
+    assert caps.searching.audio_search.supported_params == ["q"]
+
+    assert caps.searching.book_search is not None
+    assert caps.searching.book_search.available is False
+    assert caps.searching.book_search.supported_params == ["q"]
+
+
+def test_parse_capabilities_categories(full_caps_xml):
+    caps = parse_capabilities(full_caps_xml)
+
+    assert len(caps.categories) == 2
+
+    movies = caps.categories[0]
+    assert movies.id == 2000
+    assert movies.name == "Movies"
+    assert len(movies.subcats) == 1
+    assert movies.subcats[0].id == 2010
+    assert movies.subcats[0].name == "Foreign"
+
+    tv = caps.categories[1]
+    assert tv.id == 5000
+    assert tv.name == "TV"
+    assert len(tv.subcats) == 2
+    assert tv.subcats[0].id == 5040
+    assert tv.subcats[0].name == "HD"
+    assert tv.subcats[1].id == 5070
+    assert tv.subcats[1].name == "Anime"
+
+
+def test_parse_capabilities_genres(full_caps_xml):
+    caps = parse_capabilities(full_caps_xml)
+
+    assert len(caps.genres) == 1
+    assert caps.genres[0].id == 1
+    assert caps.genres[0].category_id == 5000
+    assert caps.genres[0].name == "Kids"
+
+
+def test_parse_capabilities_tags(full_caps_xml):
+    caps = parse_capabilities(full_caps_xml)
+
+    assert len(caps.tags) == 3
+    assert caps.tags[0].name == "anonymous"
+    assert caps.tags[0].description == "Uploader is anonymous"
+    assert caps.tags[1].name == "trusted"
+    assert caps.tags[1].description == "Uploader has high reputation"
+    assert caps.tags[2].name == "internal"
+    assert caps.tags[2].description == "Uploader is an internal release group"
+
+
+def test_parse_capabilities_minimal(minimal_caps_xml):
+    caps = parse_capabilities(minimal_caps_xml)
+
+    assert caps.server is None
+    assert caps.limits is None
+    assert caps.registration is None
+    assert caps.searching is None
+    assert caps.categories == []
+    assert caps.genres == []
+    assert caps.tags == []
+
+
+def test_parse_capabilities_registration_missing_attrs():
+    xml = """
+    <caps>
+       <registration />
+    </caps>
+    """
+    caps = parse_capabilities(xml)
+
+    assert caps.registration is not None
+    assert caps.registration.available is None
+    assert caps.registration.open is None
+
+
+def test_parse_capabilities_search_mode_missing_supported_params():
+    xml = """
+    <caps>
+       <searching>
+          <search available="yes" />
+       </searching>
+    </caps>
+    """
+    caps = parse_capabilities(xml)
+
+    assert caps.searching is not None
+    assert caps.searching.search is not None
+    assert caps.searching.search.available is True
+    assert caps.searching.search.supported_params == []
+    assert caps.searching.tv_search is None
+    assert caps.searching.movie_search is None
+    assert caps.searching.audio_search is None
+    assert caps.searching.book_search is None

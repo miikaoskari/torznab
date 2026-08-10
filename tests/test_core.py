@@ -3,7 +3,33 @@ from unittest.mock import MagicMock, patch
 import pytest
 import requests
 
-from torznab import TorrentItem, Torznab, TorznabException
+from torznab import Capabilities, TorrentItem, Torznab, TorznabException
+
+
+def test_api_key_is_set():
+    client = Torznab(api_key="test-key")
+
+    assert client.api_key == "test-key"
+
+
+def test_api_key_gets_overridden():
+    client = Torznab(api_key="default-key")
+
+    mock_response = MagicMock()
+    mock_response.text = "<rss><channel></channel></rss>"
+    mock_response.raise_for_status.return_value = None
+
+    with patch.object(client.session, "get", return_value=mock_response) as mock_get:
+        client.search_torrent(
+            query="ubuntu",
+            url="https://indexer.example.com/api",
+            api_key="custom-key",
+        )
+
+        mock_get.assert_called_once_with(
+            "https://indexer.example.com/api",
+            params={"t": "search", "q": "ubuntu", "apikey": "custom-key"},
+        )
 
 
 def test_search_torrent_success():
@@ -98,3 +124,40 @@ def test_search_torrent_without_api_key():
             "https://indexer.example.com/api",
             params={"t": "search", "q": "ubuntu"},
         )
+
+
+def test_get_capabilities(full_caps_xml):
+    client = Torznab(api_key="test-key")
+
+    mock_response = MagicMock()
+    mock_response.text = full_caps_xml
+    mock_response.raise_for_status.return_value = None
+
+    with patch.object(client.session, "get", return_value=mock_response) as mock_get:
+        caps = client.get_capabilities(url="https://indexer.example.com/api")
+
+        mock_get.assert_called_once_with(
+            "https://indexer.example.com/api",
+            params={"t": "caps", "apikey": "test-key"},
+        )
+        assert isinstance(caps, Capabilities)
+        assert caps.server is not None
+        assert caps.server.title == "Example Indexer"
+        assert caps.limits is not None
+        assert caps.limits.max == 100
+        assert len(caps.categories) == 2
+        assert len(caps.tags) == 3
+
+
+def test_get_capabilities_http_error():
+    client = Torznab(api_key="test-key")
+
+    mock_response = MagicMock()
+    mock_response.raise_for_status.side_effect = requests.HTTPError("404 Not Found")
+
+    with patch.object(client.session, "get", return_value=mock_response):
+        with pytest.raises(TorznabException):
+            client.get_capabilities(
+                url="https://indexer.example.com/api",
+                api_key=None,
+            )

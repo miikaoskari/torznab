@@ -1,8 +1,8 @@
 import requests
 
 from .exceptions import TorznabException
-from .parser import parse_torznab
-from .types import TorrentItem
+from .parser import parse_capabilities, parse_torznab
+from .types import Capabilities, TorrentItem
 from .validators import is_url
 
 
@@ -31,5 +31,17 @@ class Torznab:
                 **({"apikey": key} if key else {}),
             }
             return parse_torznab(self._search(url, full_query))
+        except Exception as e:
+            raise TorznabException from e
+
+    def get_capabilities(self, url: str, api_key: str | None = None) -> Capabilities:
+        try:
+            is_url(url)
+            key = api_key if api_key is not None else self.api_key
+            full_query = {
+                "t": "caps",
+                **({"apikey": key} if key else {}),
+            }
+            return parse_capabilities(self._search(url, full_query))
         except Exception as e:
             raise TorznabException from e
