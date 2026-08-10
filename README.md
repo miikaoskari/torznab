@@ -14,13 +14,13 @@ tn = Torznab()
 
 res = tn.search_torrent("ubuntu", "https://localhost:9876/torznab")
 
-print(res)
+# get indexer capabilities
+res = tn.get_capabilities("https://localhost:9876/torznab")
 ```
 
 # todo
 
 implement the reading of rest of the endpoints:
-- caps
 - tvsearch
 - movie
 - music
