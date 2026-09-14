@@ -9,7 +9,6 @@ from torznab import (
     Torznab,
     TorznabAPIError,
     TorznabConnectionError,
-    TorznabException,
     TorznabValidationError,
 )
 
@@ -195,19 +194,16 @@ def test_search_torrent_per_call_timeout_override():
         )
 
 
-def test_search_torrent_unexpected_error_wrapped():
+def test_search_torrent_unexpected_error_propagates():
     client = Torznab(api_key="test-key")
 
     with patch.object(client.session, "get", side_effect=ValueError("boom")):
-        with pytest.raises(TorznabException) as exc_info:
+        with pytest.raises(ValueError):
             client.search_torrent(
                 query="ubuntu",
                 url="https://indexer.example.com/api",
                 api_key=None,
             )
-
-        assert not isinstance(exc_info.value, TorznabConnectionError)
-        assert type(exc_info.value) is TorznabException
 
 
 def test_get_capabilities(full_caps_xml):
