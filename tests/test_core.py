@@ -3,7 +3,15 @@ from unittest.mock import MagicMock, patch
 import pytest
 import requests
 
-from torznab import Capabilities, TorrentItem, Torznab, TorznabException
+from torznab import (
+    Capabilities,
+    TorrentItem,
+    Torznab,
+    TorznabAPIError,
+    TorznabConnectionError,
+    TorznabException,
+    TorznabValidationError,
+)
 
 
 def test_api_key_is_set():
@@ -29,6 +37,7 @@ def test_api_key_gets_overridden():
         mock_get.assert_called_once_with(
             "https://indexer.example.com/api",
             params={"t": "search", "q": "ubuntu", "apikey": "custom-key"},
+            timeout=30,
         )
 
 
@@ -61,6 +70,7 @@ def test_search_torrent_success():
         mock_get.assert_called_once_with(
             "https://indexer.example.com/api",
             params={"t": "search", "q": "ubuntu", "apikey": "default-key"},
+            timeout=30,
         )
         assert len(results) == 1
         assert isinstance(results[0], TorrentItem)
@@ -85,13 +95,14 @@ def test_search_torrent_override_api_key():
         mock_get.assert_called_once_with(
             "https://indexer.example.com/api",
             params={"t": "search", "q": "linux", "apikey": "custom-key"},
+            timeout=30,
         )
 
 
 def test_search_torrent_invalid_url():
     client = Torznab(api_key="test-key")
 
-    with pytest.raises(TorznabException):
+    with pytest.raises(TorznabValidationError):
         client.search_torrent(query="ubuntu", url="invalid-url", api_key=None)
 
 
@@ -102,7 +113,7 @@ def test_search_torrent_http_error():
     mock_response.raise_for_status.side_effect = requests.HTTPError("404 Not Found")
 
     with patch.object(client.session, "get", return_value=mock_response):
-        with pytest.raises(TorznabException):
+        with pytest.raises(TorznabConnectionError):
             client.search_torrent(
                 query="ubuntu",
                 url="https://indexer.example.com/api",
@@ -123,7 +134,80 @@ def test_search_torrent_without_api_key():
         mock_get.assert_called_once_with(
             "https://indexer.example.com/api",
             params={"t": "search", "q": "ubuntu"},
+            timeout=30,
         )
+
+
+def test_search_torrent_api_error():
+    client = Torznab(api_key="test-key")
+
+    mock_response = MagicMock()
+    mock_response.text = '<error code="100" description="Incorrect user credentials" />'
+    mock_response.raise_for_status.return_value = None
+
+    with patch.object(client.session, "get", return_value=mock_response):
+        with pytest.raises(TorznabAPIError) as exc_info:
+            client.search_torrent(
+                query="ubuntu",
+                url="https://indexer.example.com/api",
+                api_key=None,
+            )
+
+        assert exc_info.value.code == 100
+        assert exc_info.value.description == "Incorrect user credentials"
+
+
+def test_search_torrent_custom_default_timeout():
+    client = Torznab(api_key="test-key", timeout=5)
+
+    mock_response = MagicMock()
+    mock_response.text = "<rss><channel></channel></rss>"
+    mock_response.raise_for_status.return_value = None
+
+    with patch.object(client.session, "get", return_value=mock_response) as mock_get:
+        client.search_torrent(query="ubuntu", url="https://indexer.example.com/api")
+
+        mock_get.assert_called_once_with(
+            "https://indexer.example.com/api",
+            params={"t": "search", "q": "ubuntu", "apikey": "test-key"},
+            timeout=5,
+        )
+
+
+def test_search_torrent_per_call_timeout_override():
+    client = Torznab(api_key="test-key", timeout=5)
+
+    mock_response = MagicMock()
+    mock_response.text = "<rss><channel></channel></rss>"
+    mock_response.raise_for_status.return_value = None
+
+    with patch.object(client.session, "get", return_value=mock_response) as mock_get:
+        client.search_torrent(
+            query="ubuntu",
+            url="https://indexer.example.com/api",
+            timeout=15,
+        )
+
+        mock_get.assert_called_once_with(
+            "https://indexer.example.com/api",
+            params={"t": "search", "q": "ubuntu", "apikey": "test-key"},
+            timeout=15,
+        )
+
+
+def test_search_torrent_unexpected_error_wrapped():
+    client = Torznab(api_key="test-key")
+
+    with patch.object(client.session, "get", side_effect=ValueError("boom")):
+        with pytest.raises(TorznabException) as exc_info:
+            client.search_torrent(
+                query="ubuntu",
+                url="https://indexer.example.com/api",
+                api_key=None,
+            )
+
+        assert not isinstance(exc_info.value, TorznabConnectionError)
+        assert type(exc_info.value) is TorznabException
 
 
 def test_get_capabilities(full_caps_xml):
@@ -139,6 +223,7 @@ def test_get_capabilities(full_caps_xml):
         mock_get.assert_called_once_with(
             "https://indexer.example.com/api",
             params={"t": "caps", "apikey": "test-key"},
+            timeout=30,
         )
         assert isinstance(caps, Capabilities)
         assert caps.server is not None
@@ -156,7 +241,7 @@ def test_get_capabilities_http_error():
     mock_response.raise_for_status.side_effect = requests.HTTPError("404 Not Found")
 
     with patch.object(client.session, "get", return_value=mock_response):
-        with pytest.raises(TorznabException):
+        with pytest.raises(TorznabConnectionError):
             client.get_capabilities(
                 url="https://indexer.example.com/api",
                 api_key=None,

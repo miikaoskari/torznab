@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as ET
 
+from .exceptions import TorznabAPIError
 from .types import (
     AudioInfo,
     BookInfo,
@@ -45,6 +46,14 @@ def _parse_bool(val: str | None) -> bool | None:
     if val is None:
         return None
     return val.strip().lower() == "yes"
+
+
+def _check_for_error(root: ET.Element) -> None:
+    if root.tag == "error":
+        raise TorznabAPIError(
+            code=_parse_int(root.get("code")),
+            description=root.get("description"),
+        )
 
 
 def _parse_media_info(attrs: dict[str, str]) -> MediaInfo | None:
@@ -172,6 +181,7 @@ def _parse_book_info(attrs: dict[str, str]) -> BookInfo | None:
 
 def parse_torznab(xml_string: str) -> list[TorrentItem]:
     root = ET.fromstring(xml_string)
+    _check_for_error(root)
     items = []
     for item in root.findall(".//item"):
         categories = [
@@ -250,6 +260,7 @@ def _parse_search_mode(elem: ET.Element | None) -> SearchMode | None:
 
 def parse_capabilities(xml_string: str) -> Capabilities:
     root = ET.fromstring(xml_string)
+    _check_for_error(root)
 
     server = None
     if (elem := root.find("server")) is not None:

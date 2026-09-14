@@ -1,5 +1,11 @@
 from .core import Torznab
-from .exceptions import TorznabException
+from .exceptions import (
+    TorznabAPIError,
+    TorznabConnectionError,
+    TorznabException,
+    TorznabParseError,
+    TorznabValidationError,
+)
 from .parser import parse_capabilities, parse_torznab
 from .types import (
     AudioInfo,
@@ -24,6 +30,10 @@ from .types import (
 __all__ = [
     "Torznab",
     "TorznabException",
+    "TorznabAPIError",
+    "TorznabValidationError",
+    "TorznabConnectionError",
+    "TorznabParseError",
     "parse_torznab",
     "parse_capabilities",
     "TorrentItem",

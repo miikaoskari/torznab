@@ -1,3 +1,6 @@
+import pytest
+
+from torznab.exceptions import TorznabAPIError
 from torznab.parser import parse_capabilities, parse_torznab
 
 
@@ -287,6 +290,26 @@ def test_parse_capabilities_registration_missing_attrs():
     assert caps.registration is not None
     assert caps.registration.available is None
     assert caps.registration.open is None
+
+
+def test_parse_torznab_api_error():
+    xml = '<error code="100" description="Incorrect user credentials" />'
+
+    with pytest.raises(TorznabAPIError) as exc_info:
+        parse_torznab(xml)
+
+    assert exc_info.value.code == 100
+    assert exc_info.value.description == "Incorrect user credentials"
+
+
+def test_parse_capabilities_api_error():
+    xml = '<error code="901" description="API Request Limit Reached" />'
+
+    with pytest.raises(TorznabAPIError) as exc_info:
+        parse_capabilities(xml)
+
+    assert exc_info.value.code == 901
+    assert exc_info.value.description == "API Request Limit Reached"
 
 
 def test_parse_capabilities_search_mode_missing_supported_params():

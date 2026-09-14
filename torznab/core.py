@@ -1,18 +1,25 @@
+import xml.etree.ElementTree as ET
+
 import requests
 
-from .exceptions import TorznabException
+from .exceptions import TorznabConnectionError, TorznabException, TorznabParseError
 from .parser import parse_capabilities, parse_torznab
 from .types import Capabilities, TorrentItem
 from .validators import is_url
 
+DEFAULT_TIMEOUT = 30
+
 
 class Torznab:
-    def __init__(self, api_key: str | None = None) -> None:
+    def __init__(
+        self, api_key: str | None = None, timeout: float = DEFAULT_TIMEOUT
+    ) -> None:
         self.api_key = api_key
+        self.timeout = timeout
         self.session = requests.Session()
 
-    def _search(self, url: str, full_query: dict) -> str:
-        resp = self.session.get(url, params=full_query)
+    def _search(self, url: str, full_query: dict, timeout: float) -> str:
+        resp = self.session.get(url, params=full_query, timeout=timeout)
         resp.raise_for_status()
         return resp.text
 
@@ -21,6 +28,7 @@ class Torznab:
         query: str,
         url: str,
         api_key: str | None = None,
+        timeout: float | None = None,
     ) -> list[TorrentItem]:
         try:
             is_url(url)
@@ -30,11 +38,23 @@ class Torznab:
                 "q": query,
                 **({"apikey": key} if key else {}),
             }
-            return parse_torznab(self._search(url, full_query))
+            resolved_timeout = timeout if timeout is not None else self.timeout
+            return parse_torznab(self._search(url, full_query, resolved_timeout))
+        except requests.RequestException as e:
+            raise TorznabConnectionError(str(e)) from e
+        except ET.ParseError as e:
+            raise TorznabParseError(str(e)) from e
+        except TorznabException:
+            raise
         except Exception as e:
-            raise TorznabException from e
+            raise TorznabException(str(e)) from e
 
-    def get_capabilities(self, url: str, api_key: str | None = None) -> Capabilities:
+    def get_capabilities(
+        self,
+        url: str,
+        api_key: str | None = None,
+        timeout: float | None = None,
+    ) -> Capabilities:
         try:
             is_url(url)
             key = api_key if api_key is not None else self.api_key
@@ -42,6 +62,13 @@ class Torznab:
                 "t": "caps",
                 **({"apikey": key} if key else {}),
             }
-            return parse_capabilities(self._search(url, full_query))
+            resolved_timeout = timeout if timeout is not None else self.timeout
+            return parse_capabilities(self._search(url, full_query, resolved_timeout))
+        except requests.RequestException as e:
+            raise TorznabConnectionError(str(e)) from e
+        except ET.ParseError as e:
+            raise TorznabParseError(str(e)) from e
+        except TorznabException:
+            raise
         except Exception as e:
-            raise TorznabException from e
+            raise TorznabException(str(e)) from e
